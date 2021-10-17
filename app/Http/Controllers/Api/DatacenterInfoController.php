@@ -138,10 +138,14 @@ class DatacenterInfoController extends Controller
                 ];
             }
         }
-        $wasendController = new WASendController();
-        $request->message = $response;
-        $request->to = '81982001303';
-        $wasendController->send($request, $this->whatsAppToken, $this->phoneFrom);
+        try {
+            $wasendController = new WASendController();
+            $request->message = $response['message'];
+            $request->to = '81982001303';
+            $wasendController->send($request, $this->whatsAppToken, $this->phoneFrom);
+        } catch (\Exception $ex) {
+            $response['whatsappError'] = $ex->getMessage();
+        }
         return response()->json($response);
     }
 
