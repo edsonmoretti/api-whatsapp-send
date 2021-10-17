@@ -125,10 +125,17 @@ class DatacenterInfoController extends Controller
         }');
         if (isset($data->result)) {
             if (empty($data->result)) {
-                $response = "Que legal, não temos nenhum incidente recente";
+                $response = [
+                    "code" => "success",
+                    "message" => "Que legal, não temos nenhum incidente recente"
+                ];
+
             } else {
                 $total = count($data->result);
-                $response = "Temos " . $total . " de incidentes."; //TODO: o mais recente foi...;
+                $response = [
+                    "code" => "success",
+                    "message" => "Temos " . $total . " de incidentes." //TODO: o mais recente foi...
+                ];
             }
         }
         $wasendController = new WASendController();
