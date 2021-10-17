@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Mail\Mailer;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 use function response;
 
@@ -20,6 +21,11 @@ class DatacenterInfoController extends Controller
      *
      * @return Response
      */
+    private $zabbixLoginToken = '';
+//    private $whatsAppToken = '4f45ae19-b8ad-4821-9611-866a6c96b65e';
+    private $whatsAppToken = 'f2085361-27b5-4953-8617-83b14473343f';
+    private $phoneFrom = '5581982001303';
+
     public function index()
     {
         //
@@ -97,19 +103,86 @@ class DatacenterInfoController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function last($token)
+    public function last(Request $request)
     {
-        $validToken = $this->validToken($token);
-        if ($validToken instanceof \Illuminate\Http\JsonResponse) {
-            return $validToken;
+        if (empty($this->zabbixLoginToken)) {
+            $this->zabbixLogin();
         }
-        $user = $validToken['user'];
+        $data = $this->postZabbix('{
+            "jsonrpc": "2.0",
+            "method": "problem.get",
+            "params": {
+                "output": "extend",
+                "selectAcknowledges": "extend",
+                "selectTags": "extend",
+                "selectSuppressionData": "extend",
+                "recent": "true",
+                "sortfield": ["eventid"],
+                "sortorder": "DESC"
+            },
+            "auth": "' . $this->zabbixLoginToken . '",
+            "id": 1
+        }');
+        if (isset($data->result)) {
+            if (empty($data->result)) {
+                $response = "Que legal, não temos nenhum incidente recente";
+            } else {
+                $total = count($data->result);
+                $response = "Temos " . $total . " de incidentes."; //TODO: o mais recente foi...;
+            }
+        }
+        $wasendController = new WASendController();
+        $request->message = $response;
+        $request->to = '81982001303';
+        $wasendController->send($request, $this->whatsAppToken, $this->phoneFrom);
+        return response()->json($response);
+    }
 
-        $datacenterInfo = DatacenterInfo::all()->last();
-        return response()->json([
-            'temperature' => $datacenterInfo->temperature,
-            'humidity' => $datacenterInfo->humidity
-        ]);
+    private function zabbixLogin()
+    {
+        //TODO: pegar do banco de dados, configurado via WEB
+        $user = 'Admin';
+        $password = 'zabbix';
+        $data = $this->postZabbix('{
+                "jsonrpc": "2.0",
+                "method": "user.login",
+                "params": {
+                    "user": "' . $user . '",
+                    "password": "' . $password . '"
+                },
+                "id": 1,
+                "auth": null
+            }');
+
+        if (isset($data->error)) {
+            //TODO: tratar esse erro aqui
+            return $data;
+        } else {
+            return $this->zabbixLoginToken = $data->result;
+        }
+    }
+
+    private function postZabbix($postField)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'http://edsonmoretti.ddns.net:8000/api_jsonrpc.php',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $postField,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return json_decode($response);
     }
 
     /**
@@ -145,6 +218,7 @@ class DatacenterInfoController extends Controller
     {
         //
     }
+
 
     public function validToken($token)
     {

@@ -30,17 +30,15 @@ Route::namespace('Api')
 
     });
 
+
 Route::namespace('Api')
     ->name('api.')
     ->group(function () {
         Route::name('datacenter.')
-            ->prefix('{token}/datacenterinfo')
+            ->prefix('datacenterinfo')
             ->group(function () {
-                Route::post('/store', 'DatacenterInfoController@store')->name('store');
                 Route::post('/last', 'DatacenterInfoController@last')->name('last');
-                Route::get('/last', 'DatacenterInfoController@last')->name('last');
             });
-
     });
 
 

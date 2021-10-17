@@ -15,7 +15,9 @@
         "laravel/framework": "^7.24",
         "laravel/tinker": "^2.0",
         "tymon/jwt-auth": "^1.0",
-      "ext-imap": "*"
+        "ext-imap": "*",
+        "ext-curl": "*",
+        "ext-json": "*"
     },
     "require-dev": {
         "facade/ignition": "^2.0",
