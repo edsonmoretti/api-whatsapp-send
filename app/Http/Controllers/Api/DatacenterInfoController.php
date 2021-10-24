@@ -176,18 +176,19 @@ class DatacenterInfoController extends Controller
             ]
         ]);
 
+        $firstDay = date('Y-m-01');
+        $lastDay = date('Y-m-t');
         $result = $awsCost->getCostAndUsage([
             'Granularity' => 'MONTHLY', // REQUIRED
             'Metrics' => ['BLENDED_COST'], // REQUIRED
             'TimePeriod' => [ // REQUIRED
-                'Start' => '2021-10-01', // REQUIRED
-                'End' => '2021-10-30', // REQUIRED
+                'Start' => $firstDay, // REQUIRED
+                'End' => $lastDay, // REQUIRED
             ],
         ]);
-
         if ($result) {
             $amount = $result->get('ResultsByTime')[0]['Total']['BlendedCost']['Amount'];
-            $amount = "5.22";
+            $amount = 30.7;
             if ($amount > 0) {
                 $unit = $result->get('ResultsByTime')[0]['Total']['BlendedCost']['Unit'];
 
@@ -198,12 +199,16 @@ class DatacenterInfoController extends Controller
                 $lastUsdValue = json_decode(curl_exec($ch));
 
                 $blrAmout = $amount * $lastUsdValue->USDBRL->bid;
-                $reais = explode('.', $blrAmout)[0];
-                $cent = substr(explode('.', $blrAmout)[1], 0, 2);
+                $explode = explode('.', $blrAmout);
+                $reais = $explode[0];
+                $cent = $explode[1] ?? "0";
+                $cent = substr($cent, 0, 2);
                 $response = [
                     "code" => "success",
                     "message" => "Este mês o custo com AWS está em $amount dolares."
-                        . " Ou seja, aproximadamente $reais reais e $cent centavos na cotação atual do dolar."
+                        . " Ou seja, aproximadamente $reais reais "
+                        . ($cent > 0 ? " e $cent centavos " : "")
+                        . " na cotação atual do dolar."
                 ];
             } else {
                 $response = [
