@@ -39,6 +39,7 @@ Route::namespace('Api')
             ->group(function () {
                 Route::post('/last', 'DatacenterInfoController@last')->name('last');
                 Route::post('/last/openticket', 'DatacenterInfoController@openTicketToLastProblem')->name('openTicket');
+                Route::post('/aws/cost', 'DatacenterInfoController@awsCost')->name('openTicket');
             });
     });
 

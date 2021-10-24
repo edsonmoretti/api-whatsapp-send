@@ -9,15 +9,16 @@
     "license": "MIT",
     "require": {
         "php": "^7.2.5",
+        "ext-curl": "*",
+        "ext-imap": "*",
+        "ext-json": "*",
+        "aws/aws-sdk-php": "^3.199",
         "fideloper/proxy": "^4.2",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^6.3",
         "laravel/framework": "^7.24",
         "laravel/tinker": "^2.0",
-        "tymon/jwt-auth": "^1.0",
-        "ext-imap": "*",
-        "ext-curl": "*",
-        "ext-json": "*"
+        "tymon/jwt-auth": "^1.0"
     },
     "require-dev": {
         "facade/ignition": "^2.0",

@@ -6,6 +6,8 @@ use App\DatacenterInfo;
 use App\Http\Controllers\Controller;
 use App\Message;
 use App\User;
+use Aws\CostExplorer\CostExplorerClient;
+use Aws\Ec2\Ec2Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -159,6 +161,62 @@ class DatacenterInfoController extends Controller
             $response['whatsappError'] = $ex->getMessage();
         }
         return response()->json($response);
+    }
+
+    public function awsCost(Request $request)
+    {
+//        $awsCost = new CostExplorerClient();
+        //70ef6ac0-6325-41cd-b743-a962e286057a
+        $awsCost = new CostExplorerClient([
+            'region' => 'us-west-1',
+            'version' => '2017-10-25',
+            'credentials' => [
+                'key' => 'AKIA3GALEXWWTW3XLWFG',
+                'secret' => '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',
+            ]
+        ]);
+
+        $result = $awsCost->getCostAndUsage([
+            'Granularity' => 'MONTHLY', // REQUIRED
+            'Metrics' => ['BLENDED_COST'], // REQUIRED
+            'TimePeriod' => [ // REQUIRED
+                'Start' => '2021-10-01', // REQUIRED
+                'End' => '2021-10-30', // REQUIRED
+            ],
+        ]);
+
+        if ($result) {
+            $amount = $result->get('ResultsByTime')[0]['Total']['BlendedCost']['Amount'];
+            $amount = "5.22";
+            if ($amount > 0) {
+                $unit = $result->get('ResultsByTime')[0]['Total']['BlendedCost']['Unit'];
+
+                $url = "https://economia.awesomeapi.com.br/json/last/$unit";
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                $lastUsdValue = json_decode(curl_exec($ch));
+
+                $blrAmout = $amount * $lastUsdValue->USDBRL->bid;
+                $reais = explode('.', $blrAmout)[0];
+                $cent = substr(explode('.', $blrAmout)[1], 0, 2);
+                $response = [
+                    "code" => "success",
+                    "message" => "Este mês o custo com AWS está em $amount dolares."
+                        . " Ou seja, aproximadamente $reais reais e $cent centavos na cotação atual do dolar."
+                ];
+            } else {
+                $response = [
+                    "code" => "success",
+                    "message" => "Não encontrei nenhum custo para este mês."
+                ];
+            }
+        }
+
+        return response()->json($response ?? [
+                'code' => 'error',
+                'message' => 'Algo deu errado, aff'
+            ]);
     }
 
     public function openTicketToLastProblem(Request $request)
