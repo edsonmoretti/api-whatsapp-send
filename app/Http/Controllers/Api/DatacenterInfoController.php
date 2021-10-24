@@ -24,7 +24,7 @@ class DatacenterInfoController extends Controller
     private $zabbixLoginToken = '';
 //    private $whatsAppToken = '4f45ae19-b8ad-4821-9611-866a6c96b65e';
     private $whatsAppToken = 'f2085361-27b5-4953-8617-83b14473343f';
-    private $phoneFrom = '5581982001303';
+    private $phoneFrom = '5581971096881';
 
     public function index()
     {
@@ -132,9 +132,12 @@ class DatacenterInfoController extends Controller
 
             } else {
                 $total = count($data->result);
+                $lastMessage = $data->result[0]->name;
                 $response = [
                     "code" => "success",
-                    "message" => "Temos " . $total . " de incidentes." //TODO: o mais recente foi...
+                    "message" => "Tivemos um total de "
+                        . $total . ($total > 1 ? " incidentes. " : " incidemte. ")
+                        . "O último foi: " . $this->translate($lastMessage)
                 ];
             }
         }
@@ -147,6 +150,13 @@ class DatacenterInfoController extends Controller
             $response['whatsappError'] = $ex->getMessage();
         }
         return response()->json($response);
+    }
+
+    private function translate($q, $sl = "en", $tl = "pt")
+    {
+        $res = file_get_contents("https://translate.googleapis.com/translate_a/single?client=gtx&ie=UTF-8&oe=UTF-8&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=at&sl=" . $sl . "&tl=" . $tl . "&hl=hl&q=" . urlencode($q), $_SERVER['DOCUMENT_ROOT'] . "/transes.html");
+        $res = json_decode($res);
+        return $res[0][0][0];
     }
 
     private function zabbixLogin()
