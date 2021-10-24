@@ -137,7 +137,16 @@ class DatacenterInfoController extends Controller
                     "code" => "success",
                     "message" => "Tivemos um total de "
                         . $total . ($total > 1 ? " incidentes. " : " incidemte. ")
-                        . "O último foi: " . str_replace('<', '', $this->translate($lastMessage))
+                        . "O último foi: " . str_replace(
+                            'Zabbix',
+                            'zábix',
+                            str_replace(
+                                '<',
+                                '',
+                                trim(explode('(', $this->translate($lastMessage))[0])
+                            )
+                        ),
+                    "reprompt" => "Deseja abrir um chamado para este problema?"
                 ];
             }
         }
@@ -146,6 +155,64 @@ class DatacenterInfoController extends Controller
             $request->message = $response['message'];
             $request->to = '81982001303';
             $wasendController->send($request, $this->whatsAppToken, $this->phoneFrom);
+        } catch (\Exception $ex) {
+            $response['whatsappError'] = $ex->getMessage();
+        }
+        return response()->json($response);
+    }
+
+    public function openTicketToLastProblem(Request $request)
+    {
+        if (empty($this->zabbixLoginToken)) {
+            $this->zabbixLogin();
+        }
+        $data = $this->postZabbix('{
+            "jsonrpc": "2.0",
+            "method": "problem.get",
+            "params": {
+                "output": "extend",
+                "selectAcknowledges": "extend",
+                "selectTags": "extend",
+                "selectSuppressionData": "extend",
+                "recent": "true",
+                "sortfield": ["eventid"],
+                "sortorder": "DESC"
+            },
+            "auth": "' . $this->zabbixLoginToken . '",
+            "id": 1
+        }');
+        if (isset($data->result)) {
+            if (empty($data->result)) {
+                $response = [
+                    "code" => "success",
+                    "message" => "Desculpe, não temos problemas recentes para abrir um chamado."
+                ];
+            } else {
+                $total = count($data->result);
+                $lastMessage = $data->result[0]->name;
+                $response = [
+                    "code" => "success",
+                    "message" => "Certo, chamado aberto para o problema. "
+                        . ($ticketMessage = str_replace(
+                            'Zabbix',
+                            'zábix',
+                            str_replace(
+                                '<',
+                                '',
+                                trim(explode('(', $this->translate($lastMessage))[0])
+                            ))
+                        ) . ". Nível de severidade. " . ($severity = $data->result[0]->severity),
+                    "reprompt" => false
+                ];
+            }
+        }
+        try {
+            if (isset($ticketMessage)) {
+                $wasendController = new WASendController();
+                $request->message = "*Novo chamado:* \n $ticketMessage \n*De:* Edson Moretti\n *Severidade:* $severity";
+                $request->to = '81982001303';
+                $wasendController->send($request, $this->whatsAppToken, $this->phoneFrom);
+            }
         } catch (\Exception $ex) {
             $response['whatsappError'] = $ex->getMessage();
         }

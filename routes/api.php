@@ -38,6 +38,7 @@ Route::namespace('Api')
             ->prefix('datacenterinfo')
             ->group(function () {
                 Route::post('/last', 'DatacenterInfoController@last')->name('last');
+                Route::post('/last/openticket', 'DatacenterInfoController@openTicketToLastProblem')->name('openTicket');
             });
     });
 
