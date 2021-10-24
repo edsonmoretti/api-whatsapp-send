@@ -137,7 +137,7 @@ class DatacenterInfoController extends Controller
                     "code" => "success",
                     "message" => "Tivemos um total de "
                         . $total . ($total > 1 ? " incidentes. " : " incidemte. ")
-                        . "O último foi: " . $this->translate($lastMessage)
+                        . "O último foi: " . str_replace('<', '', $this->translate($lastMessage))
                 ];
             }
         }
