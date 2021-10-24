@@ -192,7 +192,7 @@ class DatacenterInfoController extends Controller
                 $lastMessage = $data->result[0]->name;
                 $response = [
                     "code" => "success",
-                    "message" => "Certo, chamado aberto para o problema. "
+                    "message" => "Certo, chamado aberto para o problema, "
                         . ($ticketMessage = str_replace(
                             'Zabbix',
                             'zábix',
@@ -201,15 +201,14 @@ class DatacenterInfoController extends Controller
                                 '',
                                 trim(explode('(', $this->translate($lastMessage))[0])
                             ))
-                        ) . ". Nível de severidade. " . ($severity = $data->result[0]->severity),
-                    "reprompt" => false
+                        ) . ". Nível de severidade. " . ($severity = $data->result[0]->severity)
                 ];
             }
         }
         try {
             if (isset($ticketMessage)) {
                 $wasendController = new WASendController();
-                $request->message = "*Novo chamado:* \n $ticketMessage \n*De:* Edson Moretti\n *Severidade:* $severity";
+                $request->message = "*Novo chamado:* \n $ticketMessage\n*De:* Edson Moretti\n*Severidade:* $severity";
                 $request->to = '81982001303';
                 $wasendController->send($request, $this->whatsAppToken, $this->phoneFrom);
             }
