@@ -182,7 +182,7 @@ class DatacenterInfoController extends Controller
             'Granularity' => 'MONTHLY', // REQUIRED
             'Metrics' => ['BLENDED_COST'], // REQUIRED
             'TimePeriod' => [ // REQUIRED
-                'Start' => $firstDay, // REQUIRED
+                'Start' => '2021-10-01', // REQUIRED
                 'End' => $lastDay, // REQUIRED
             ],
         ]);
