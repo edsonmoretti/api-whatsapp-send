@@ -208,7 +208,7 @@ class DatacenterInfoController extends Controller
                     "message" => "Este mês o custo com AWS está em $amount dolares."
                         . " Ou seja, aproximadamente $reais reais "
                         . ($cent > 0 ? " e $cent centavos " : "")
-                        . " na cotação atual do dolar."
+                        . " na cotação atual do dolar. Enviei para seu WhatsApp"
                 ];
             } else {
                 $response = [
