@@ -24,8 +24,8 @@ class DatacenterInfoController extends Controller
      * @return Response
      */
     private $zabbixLoginToken = '';
-//    private $whatsAppToken = '4f45ae19-b8ad-4821-9611-866a6c96b65e';
-    private $whatsAppToken = 'f2085361-27b5-4953-8617-83b14473343f';
+//    private $whatsAppToken = '';
+    private $whatsAppToken = '';
     private $phoneFrom = '5581971096881';
 
     public function index()
