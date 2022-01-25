@@ -171,8 +171,8 @@ class DatacenterInfoController extends Controller
             'region' => 'us-west-1',
             'version' => '2017-10-25',
             'credentials' => [
-                'key' => 'AKIA3GALEXWWTW3XLWFG',
-                'secret' => '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',
+                'key' => 'AWSKEY',
+                'secret' => 'AWSSECRET',
             ]
         ]);
 
